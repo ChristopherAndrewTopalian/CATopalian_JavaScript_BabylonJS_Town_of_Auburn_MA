@@ -3,6 +3,16 @@ Presenting the **Town of Auburn, Massachusetts** in 3D :-) using **JavaScript** 
 
 ---
 
+![001](CATopalian_JavaScript_BabylonJS_Town_of_Auburn_MA/src/media/textures/screenshots/001.PNG)
+
+![002](CATopalian_JavaScript_BabylonJS_Town_of_Auburn_MA/src/media/textures/screenshots/002.PNG)
+
+![003](CATopalian_JavaScript_BabylonJS_Town_of_Auburn_MA/src/media/textures/screenshots/003.PNG)
+
+![004](CATopalian_JavaScript_BabylonJS_Town_of_Auburn_MA/src/media/textures/screenshots/004.PNG)
+
+---
+
 ## REQUIREMENTS:
 
 > ### Node.js https://nodejs.org/en/download
