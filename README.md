@@ -1,4 +1,4 @@
-# CATopalian_JavaScript_BabylonJS_Town_of_Auburn_MA
+# CATopalian JavaScript BabylonJS Town of Auburn MA
 Presenting the **Town of Auburn, Massachusetts** in 3D :-) using **JavaScript** **Babylon.js**
 
 ---
