@@ -1,0 +1,595 @@
+<!-- Dedicated to God the Father -->
+<!-- All Rights Reserved Christopher Topalian Copyright 2000-2025 -->
+<!-- https://github.com/ChristopherTopalian -->
+<!-- https://github.com/ChristopherAndrewTopalian -->
+<!-- CATopalian_JavaScript_BabylonJS_Town_of_Auburn_MA.html -->
+
+<html>
+<head>
+<title> CATopalian JavaScript BabylonJS Town of Auburn MA </title>
+
+<!-- internet source for the engine file - cdn version -->
+<!--
+<script src = "https://cdn.babylonjs.com/babylon.js"></script>
+-->
+
+<!-- local source for the engine file -->
+<script src= 'src/js/0engine/babylon.js'></script>
+
+<script src = 'src/js/0engine/babylon.objFileLoader.js'></script>
+
+<script src= 'src/js/1shortcuts/shortcuts.js'></script>
+
+<style>
+
+html
+{
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+body
+{
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+#theCanvas
+{
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id = 'theCanvas'></canvas>
+
+<script>
+
+let canvas = ge("theCanvas");
+
+let startRenderLoop = function(engine, canvas)
+{
+    engine.runRenderLoop(function()
+    {
+        if (sceneToRender && sceneToRender.activeCamera)
+        {
+            sceneToRender.render();
+        }
+    });
+}
+
+// keep as var
+var engine = null;
+
+// keep as var
+var scene = null;
+
+// keep as var
+var sceneToRender = null;
+
+let createDefaultEngine = function()
+{
+    return new BABYLON.Engine(canvas, true,
+    {
+        preserveDrawingBuffer: true,
+        stencil: true,
+        disableWebGL2Support: false
+    });
+};
+
+let createScene = function()
+{
+    let keys =
+    {
+        forward: 0,
+        back: 0,
+        left: 0,
+        right: 0,
+        jump: 0,
+        flyUp: 0,
+        flyDown: 0
+    }
+
+    // create a Scene object
+    let scene = new BABYLON.Scene(engine);
+
+    //----//
+
+    // after scene is created, we add the overlay div
+    let playerInfoDiv = ce("div");
+    playerInfoDiv.id = 'playerInfoDiv';
+    playerInfoDiv.style.position = "fixed";
+    playerInfoDiv.style.top = "5px";
+    playerInfoDiv.style.left = "10px";
+    playerInfoDiv.style.color = "rgb(255, 255, 255)";
+    playerInfoDiv.style.fontSize = "17px";
+    playerInfoDiv.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+    playerInfoDiv.style.padding = "2px 10px";
+    playerInfoDiv.style.borderRadius = "5px";
+    playerInfoDiv.style.zIndex = "1000";
+    playerInfoDiv.textContent = "Player Position: (0,0,0)";
+    playerInfoDiv.style.color = 'rgb(170, 170, 170)';
+    ba(playerInfoDiv);
+
+    //-//
+
+    // updates position info
+    function updatePlayerPosition()
+    {
+        let pos = player.position;
+        return "(" +
+        pos.x.toFixed(2) + ", " +
+        pos.y.toFixed(2) + ", " +
+        pos.z.toFixed(2) + ")";
+    }
+
+    //-//
+
+    // CAMERA
+
+    let camera = new BABYLON.ArcRotateCamera(
+    'arcCamera1', 
+    // alpha: 90 degrees, looking along Z axis
+    -Math.PI / 2,
+    // beta: degrees up/down
+    Math.PI / 2,
+    // radius is distance from player
+    2,
+    // target at origin
+    new BABYLON.Vector3(0, 0, 0),
+    scene
+    );
+
+    /*
+    // alternative camera setting
+    // camera - top down
+    let camera = new BABYLON.ArcRotateCamera('arcCamera1', 0, 0, 10, BABYLON.Vector3(0, 0, 100), scene);
+    */
+
+    // CAMERA SCROLL ZOOM SPEED
+    camera.wheelPrecision = 20;
+
+    // CAMERA SPEED
+    camera.speed = 20;
+
+    //camera.radius = -20; // distance from player
+
+    // camera.attachControl(canvas, false);
+
+    // Attach control
+    camera.attachControl(canvas, false);
+
+    // Draw Distance
+    camera.maxZ = 3000;
+
+    // camera position
+    //camera.setPosition(new BABYLON.Vector3(0, 0, -70));
+
+    camera.checkCollisions = true;
+
+    camera.applyGravity = true;
+
+    // CAMERA - how close to object
+    camera.lowerRadiusLimit = 0;
+
+    // CAMERA - how far from object
+    camera.upperRadiusLimit = 100;
+
+    camera.keysUp = [];
+    camera.keysDown = [];
+    camera.keysLeft = [];
+    camera.keysRight = [];
+
+    //----//
+
+    // PLAYER
+
+    // create player
+    let player = BABYLON.MeshBuilder.CreateBox("Player", {
+        width: 0.5,
+        height: 0.5,
+        depth: 0.5
+    }, scene);
+
+    // 1st value is left and right
+    // 2nd value is up and down
+    // 3rd value is back and forth
+    // player starting position
+    player.position.x = 550;
+    player.position.y = 4;
+    player.position.z = -1112;
+
+    //----//
+
+    // player material
+    let material001 = new BABYLON.StandardMaterial('Material001', scene);
+
+    // player material color
+    material001.emissiveColor = new BABYLON.Color3(0, 0.58, 0.86);
+
+    // player texture
+    material001.diffuseTexture = new BABYLON.Texture("src/media/textures/sky/sky.png");
+
+    // no specular glare, by setting it to 0, 0, 0
+    material001.specularColor = new BABYLON.Color3(0.0, 0.0, 0.0);
+
+    material001.alpha = 0.5;
+
+    player.material = material001;
+
+    // camera follows player
+    camera.setTarget(player);
+
+    //---//
+
+    let speed = 0.2;
+
+    player.update = function()
+    {
+        let cameraForwardRayPosition = camera.getForwardRay().direction;
+
+        let cameraForwardRayPositionWithoutY = new BABYLON.Vector3(cameraForwardRayPosition.x, 0, cameraForwardRayPosition.z);
+
+        if (keys)
+        {
+            // update position
+            ge('playerInfoDiv').textContent = updatePlayerPosition();
+
+            if (keys.flyUp)
+            {
+                player.locallyTranslate(new BABYLON.Vector3(0, speed, 0));
+            }
+
+            if (keys.flyDown)
+            {
+                player.locallyTranslate(new BABYLON.Vector3(0, -speed, 0));
+            }
+
+            if (keys.left)
+            {
+                player.locallyTranslate(new BABYLON.Vector3(-speed, 0, 0));
+            }
+
+            if (keys.right)
+            {
+                player.locallyTranslate(new BABYLON.Vector3(speed, 0, 0));
+            }
+
+            if (keys.forward)
+            {
+                player.lookAt(player.position.add(cameraForwardRayPositionWithoutY), 0, 0, 0);
+
+                player.position = player.position.add(new BABYLON.Vector3(cameraForwardRayPosition.x * speed, 0, cameraForwardRayPosition.z * speed));
+            }
+
+            if (keys.back)
+            {
+                player.lookAt(player.position.add(cameraForwardRayPositionWithoutY), 0, 0, 0);
+
+                player.position = player.position.add(new BABYLON.Vector3(-cameraForwardRayPosition.x *
+                    speed, 0, -cameraForwardRayPosition.z * speed));
+            }
+        }
+    }
+
+    engine.runRenderLoop(function()
+    {
+        if (player != null)
+        {
+            player.update();
+        }
+    });
+
+    window.addEventListener('keydown', handleKeyDown, false);
+
+    window.addEventListener('keyup', handleKeyUp, false);
+
+    let action = 16;
+
+    function handleKeyDown(evt)
+    {
+        // page up or f
+        if (evt.keyCode == 33 || evt.keyCode == 70)
+        {
+            keys.flyUp = 1; // f
+        }
+
+        // page down or c
+        if (evt.keyCode == 34 || evt.keyCode == 67)
+        {
+            keys.flyDown = 1; // f
+        }
+
+        if (evt.keyCode == 65 || evt.key == 'ArrowLeft')
+        {
+            keys.left = 1; // Letter A
+        }
+
+        if (evt.keyCode == 68 || evt.key == 'ArrowRight')
+        {
+            keys.right = 1; // Letter D
+        }
+
+        if (evt.keyCode == 87 || evt.key == 'ArrowUp')
+        {
+            keys.forward = 1; // Letter W
+        }
+
+        if (evt.keyCode == 83 || evt.key == 'ArrowDown')
+        {
+            keys.back = 1; // Letter S
+        }
+
+        if (evt.keyCode == 49 || evt.key == '1')
+        {
+            speed = 0.10;
+        }
+
+        if (evt.keyCode == 50 || evt.key == '2')
+        {
+            speed = 0.20;
+        }
+
+        if (evt.keyCode == 51 || evt.key == '3')
+        {
+            speed = 0.30;
+        }
+
+        if (evt.keyCode == 52 || evt.key == '4')
+        {
+            speed = 0.40;
+        }
+
+        if (evt.keyCode == 53 || evt.key == '5')
+        {
+            speed = 0.50;
+        }
+
+        if (evt.keyCode == 54 || evt.key == '6')
+        {
+            speed = 0.60;
+        }
+
+        if (evt.keyCode == 55 || evt.key == '7')
+        {
+            speed = 0.70;
+        }
+
+        if (evt.keyCode == 56 || evt.key == '8')
+        {
+            speed = 0.80;
+        }
+
+        if (evt.keyCode == 57 || evt.key == '9')
+        {
+            speed = 0.90;
+        }
+
+        if (evt.keyCode == 58 || evt.key == '0')
+        {
+            speed = 1.00;
+        }
+
+        if (action !== evt.keyCode)
+        {
+            action = evt.keyCode;
+
+            console.log(action);
+        }
+    }
+
+    function handleKeyUp(evt)
+    {
+        if (evt.keyCode == 32)
+        {
+            keys.jump = 0;
+        }
+
+        // for page up or letter f
+        if (evt.keyCode == 33 || evt.keyCode == 70)
+        {
+            keys.flyUp = 0;
+        }
+
+        // page down or letter c
+        if (evt.keyCode == 34 || evt.keyCode == 67)
+        {
+            keys.flyDown = 0;
+        }
+
+        if (evt.keyCode == 65 || evt.key == 'ArrowLeft')
+        {
+            keys.left = 0;
+        }
+
+        if (evt.keyCode == 68 || evt.key == 'ArrowRight')
+        {
+            keys.right = 0;
+        }
+
+        if (evt.keyCode == 87 || evt.key == 'ArrowUp')
+        {
+            keys.forward = 0;
+        }
+
+        if (evt.keyCode == 83 || evt.key == 'ArrowDown')
+        {
+            keys.back = 0;
+        }
+
+        action = evt.keyCode;
+
+        console.log(action);
+    }
+
+    //----//
+
+    // LIGHT
+
+    let theLight001Vector = (4700, -2000, -7000);
+
+    // create a light in the scene
+    let light001 = new BABYLON.HemisphericLight("Light001", new BABYLON.Vector3(theLight001Vector), scene);
+
+    light001.intensity = 7.3;
+
+    //light001.range = 0.1;
+
+    //----//
+
+    let skySphere = BABYLON.MeshBuilder.CreateSphere("skySphere", { segments: 32, diameter: 1000 }, scene);
+
+    let skyMaterial = new BABYLON.StandardMaterial("skyMat", scene);
+    skyMaterial.backFaceCulling = false;
+
+    // load sky.png
+    skyMaterial.diffuseTexture = new BABYLON.Texture("src/media/textures/sky/sky.png", scene);
+    skyMaterial.diffuseTexture.uScale = 1;
+    skyMaterial.diffuseTexture.vScale = 1;
+    skyMaterial.diffuseTexture.coordinatesMode = BABYLON.Texture.SPHERICAL_MODE;
+
+    skyMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    skyMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    skyMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // makes it glow
+
+    skySphere.material = skyMaterial;
+    skySphere.infiniteDistance = true; // keeps it fixed relative to camera
+
+    //-//
+
+    // no splash screens
+    BABYLON.SceneLoader.ShowLoadingScreen = false;
+    engine.displayLoadingUI = function()
+    {
+        // override default to show nothing
+    };
+
+    //-//
+
+    BABYLON.SceneLoader.Append("src/objects/", "Town_of_Auburn_MA.obj", scene, function ()
+    {
+        scene.meshes.forEach(function(mesh)
+        {
+            if (mesh instanceof BABYLON.Mesh)
+            {
+                if (mesh.material)
+                {
+                    // modify existing material
+                    mesh.material.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1); // dark
+                    mesh.material.specularColor = new BABYLON.Color3(0, 0, 0); // no reflection
+                }
+                else
+                {
+                    // create a new material if none exists
+                    let newMat = new BABYLON.StandardMaterial("mat", scene);
+                    newMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+                    newMat.specularColor = new BABYLON.Color3(0, 0, 0);
+                    mesh.material = newMat;
+                }
+            }
+        });
+
+        // adjust repeats for the material named roads_unclassified. That is the name we called it in blender.
+        scene.meshes.forEach(function(mesh)
+        {
+            if (mesh.material && mesh.material.name === "roads_unclassified")
+            {
+                // set texture scaling
+                if (mesh.material.diffuseTexture)
+                {
+                    mesh.material.diffuseTexture.uScale = 40;
+                    mesh.material.diffuseTexture.vScale = 1;
+                }
+            }
+
+            // adjust repeats for the material named concrete_color.1
+            if (mesh.material && mesh.material.name === "concrete_color.1")
+            {
+                // set texture scaling
+                if (mesh.material.diffuseTexture)
+                {
+                    mesh.material.diffuseTexture.uScale = 1;
+                    mesh.material.diffuseTexture.vScale = 1;
+                }
+            }
+
+            // adjust repeats for the material named concrete_color.3
+            if (mesh.material && mesh.material.name === "concrete_color.3")
+            {
+                // set texture scaling
+                if (mesh.material.diffuseTexture)
+                {
+                    mesh.material.diffuseTexture.uScale = 1;
+                    mesh.material.diffuseTexture.vScale = 1;
+                }
+                // set other properties to prevent stretching
+                // set diffuseColor if needed
+            }
+        });
+    });
+
+    //----//
+
+    return scene;
+}
+
+//----//
+
+window.initFunction = async function()
+{
+    let asyncEngineCreation = async function()
+    {
+        try
+        {
+            return createDefaultEngine();
+        }
+        catch(e)
+        {
+            console.log("Creating default Engine instead");
+
+            return createDefaultEngine();
+        }
+    }
+
+    window.engine = await asyncEngineCreation();
+
+    if (!engine) throw 'engine should not be null.';
+
+    startRenderLoop(engine, canvas);
+
+    window.scene = createScene();
+};
+
+//----//
+
+initFunction().then(function()
+{
+    sceneToRender = scene;
+});
+
+//----//
+
+// resize
+window.addEventListener("resize", function()
+{
+    engine.resize();
+});
+
+</script>
+
+</body>
+
+</html>
+

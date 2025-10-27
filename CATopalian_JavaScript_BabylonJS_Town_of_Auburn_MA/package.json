@@ -1,0 +1,16 @@
+{
+    "name": "catopalian-javascript-babylonjs-town-of-auburn-ma",
+    "version": "1.0.0",
+    "main": "CATopalian_JavaScript_BabylonJS_Town_of_Auburn_MA.html",
+
+    "window": {
+        "width": 800,
+        "height": 600,
+        "icon": "src/media/textures/icon/icon.png"
+    },
+    "keywords": [],
+    "author": "Christopher Andrew Topalian",
+    "license": "",
+    "dependencies": {},
+    "devDependencies": {}
+}
