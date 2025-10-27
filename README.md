@@ -3,9 +3,6 @@ Presenting the **Town of Auburn, Massachusetts** in 3D :-) using **JavaScript** 
 
 ---
 
-
----
-
 ## REQUIREMENTS:
 
 > ### Node.js https://nodejs.org/en/download
