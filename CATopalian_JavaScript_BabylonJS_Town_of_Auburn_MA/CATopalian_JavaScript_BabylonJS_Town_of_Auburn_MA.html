@@ -81,12 +81,13 @@ var sceneToRender = null;
 
 let createDefaultEngine = function()
 {
-    return new BABYLON.Engine(canvas, true,
+    return new BABYLON.Engine(canvas, true, 
     {
         preserveDrawingBuffer: true,
         stencil: true,
         disableWebGL2Support: false
-    });
+    }, 
+    true); // 'true' here for adaptToDeviceRatio
 };
 
 let createScene = function()
