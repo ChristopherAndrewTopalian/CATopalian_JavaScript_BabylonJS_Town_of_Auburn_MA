@@ -450,6 +450,55 @@ let createScene = function()
 
     //----//
 
+    // SKY
+
+    let skySphere = BABYLON.MeshBuilder.CreateSphere(
+        "skySphere",
+        {
+            segments: 32,
+            diameter: 1000
+        },
+        scene
+    );
+
+    let skyMaterial = new BABYLON.StandardMaterial("skyMat", scene);
+    skyMaterial.backFaceCulling = false;
+
+    // load sky.png
+    skyMaterial.diffuseTexture = new BABYLON.Texture("src/media/textures/sky/sky.png", scene);
+    skyMaterial.diffuseTexture.uScale = 1;
+    skyMaterial.diffuseTexture.vScale = 1;
+    skyMaterial.diffuseTexture.coordinatesMode = BABYLON.Texture.SPHERICAL_MODE;
+
+    // remove all lighting influence
+    skyMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    skyMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    skyMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+
+    skySphere.material = skyMaterial;
+
+    // sky should not block raycasts
+    skySphere.isPickable = false;
+
+    /*
+    // stationary sky
+    // keep sky centered on camera every frame
+    scene.registerBeforeRender(function()
+    {
+        skySphere.position.x = camera.position.x;
+        skySphere.position.y = camera.position.y;
+        skySphere.position.z = camera.position.z;
+    });
+    */
+
+    // rotate the sky slowly
+    scene.registerBeforeRender(function()
+    {
+        skySphere.position.copyFrom(camera.position);
+        skySphere.rotation.y += 0.0002;
+    });
+
+    /*
     let skySphere = BABYLON.MeshBuilder.CreateSphere("skySphere", { segments: 32, diameter: 1000 }, scene);
 
     let skyMaterial = new BABYLON.StandardMaterial("skyMat", scene);
@@ -467,6 +516,7 @@ let createScene = function()
 
     skySphere.material = skyMaterial;
     skySphere.infiniteDistance = true; // keeps it fixed relative to camera
+    */
 
     //-//
 
